@@ -37,7 +37,7 @@
       projectId: "friend-referral-fd5d1",
       storageBucket: "friend-referral-fd5d1.firebasestorage.app",
       messagingSenderId: "1001644265381",
-      appId: "1:1001644265381:web:0f57e273a77e92ceb5224c"
+      appId: "1001644265381:web:0f57e273a77e92ceb5224c"
     };
 
     // Initialize Firebase
@@ -64,12 +64,11 @@
         // เข้าสู่ระบบแบบ Anonymous กับ Firebase
         await auth.signInAnonymously();
 
-        // บันทึกข้อมูล referral ลง Firestore
+        // บันทึกข้อมูล referral ลง Firestore โดยไม่เก็บ userAgent
         await db.collection("referrals").add({
           lineId: profile.userId,
           ref: ref,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent
+          timestamp: new Date().toISOString()
         });
 
         // ส่งต่อไปยัง LIFF หลัก
