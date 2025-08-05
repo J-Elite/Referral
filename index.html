@@ -30,7 +30,7 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <script>
-    // Config Firebase
+    // ตั้งค่า Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAUeY2KA2cinNXLDIYsaMAcC9B7UOkAKu4",
       authDomain: "friend-referral-fd5d1.firebaseapp.com",
@@ -44,58 +44,63 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    function getRef() {
-      // 1) ดึงจาก liff.state ก่อน
-      const params = new URLSearchParams(window.location.search);
-      const liffState = params.get("liff.state");
-      if (liffState) {
-        const stateParams = new URLSearchParams(liffState);
-        return stateParams.get("ref") || "unknown";
+    // ฟังก์ชันดึงค่า ref ให้ครอบคลุมทุกกรณี
+    function getRefParam() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let ref = urlParams.get('ref');
+
+      // ถ้าไม่มี ref ตรงๆ ให้ลองดึงจาก liff.state
+      if (!ref && urlParams.get('liff.state')) {
+        const stateParams = new URLSearchParams(urlParams.get('liff.state'));
+        ref = stateParams.get('ref');
       }
 
-      // 2) ถ้าไม่มี liff.state ดึงจาก query ปกติ
-      return params.get("ref") || "unknown";
+      return ref || 'unknown';
     }
 
     async function main() {
       try {
-        const ref = getRef();
-        const liffId = "1656517684-8eZYRdaV";
+        const ref = getRefParam();
+
+        // เช็คว่าเปิดใน LINE app หรือไม่
         const ua = navigator.userAgent || "";
         const isLineApp = /Line/i.test(ua);
 
-        // ถ้าไม่ใช่ LINE app → redirect เข้า LINE app พร้อม liff.state
         if (!isLineApp) {
-          const deepLink = `line://app/${liffId}/?liff.state=%3Fref%3D${encodeURIComponent(ref)}`;
+          // Redirect ไปเปิดใน LINE app โดยแนบ ref
+          const liffId = "1656517684-8eZYRdaV";
+          const deepLink = `line://app/${liffId}?ref=${encodeURIComponent(ref)}`;
+
           window.location.href = deepLink;
 
-          // fallback เปิด LIFF Web หลัง 2 วิ (กรณีไม่มีแอป LINE)
+          // ถ้าไม่มี LINE app ให้ fallback กลับไป LIFF web
           setTimeout(() => {
-            window.location.href = `https://liff.line.me/${liffId}/?liff.state=%3Fref%3D${encodeURIComponent(ref)}`;
+            window.location.href = `https://liff.line.me/${liffId}?ref=${encodeURIComponent(ref)}`;
           }, 2000);
 
           return;
         }
 
-        // ถ้าเปิดใน LINE app → ทำงาน LIFF ปกติ
-        await liff.init({ liffId });
+        // เริ่มทำงานใน LINE app
+        await liff.init({ liffId: "1656517684-8eZYRdaV" });
+
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
 
         const profile = await liff.getProfile();
+
         await auth.signInAnonymously();
 
-        // บันทึกข้อมูลลง Firestore
         await db.collection("referrals").add({
           lineId: profile.userId,
           ref: ref,
           timestamp: new Date().toISOString()
         });
 
-        // ส่งต่อไป LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
+
       } catch (error) {
         console.error("Error:", error);
         document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
