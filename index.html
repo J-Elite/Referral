@@ -53,15 +53,11 @@
         const isLineApp = /Line/i.test(ua);
 
         if (!isLineApp) {
-          // ถ้าไม่ใช่ LINE app ให้ redirect ไปเปิด deep link LINE app
-          // พร้อม fallback กลับมาที่ LIFF web page ถ้าไม่มีแอป
           const liffId = "1656517684-8eZYRdaV";
           const deepLink = "line://app/" + liffId + "?ref=" + encodeURIComponent(ref);
 
-          // ลอง redirect เปิดแอป line
           window.location.href = deepLink;
 
-          // หลังจากนั้น ถ้าไม่เกิดอะไร (ไม่มี LINE app) ให้เปิด LIFF web fallback หลัง delay 2 วิ
           setTimeout(() => {
             window.location.href = `https://liff.line.me/${liffId}?ref=${encodeURIComponent(ref)}`;
           }, 2000);
@@ -69,7 +65,6 @@
           return;
         }
 
-        // ถ้าอยู่ใน LINE app ให้เริ่ม LIFF ปกติ
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
 
         if (!liff.isLoggedIn()) {
