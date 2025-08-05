@@ -30,7 +30,6 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <script>
-    // ตั้งค่า Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAUeY2KA2cinNXLDIYsaMAcC9B7UOkAKu4",
       authDomain: "friend-referral-fd5d1.firebaseapp.com",
@@ -40,18 +39,37 @@
       appId: "1001644265381:web:0f57e273a77e92ceb5224c"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
     async function main() {
       try {
-        // ดึงพารามิเตอร์ referral จาก URL
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
-        // เริ่มต้น LIFF
+        // ตรวจสอบว่าเปิดใน LINE app หรือไม่ (เช็ค userAgent แบบง่ายๆ)
+        const ua = navigator.userAgent || "";
+        const isLineApp = /Line/i.test(ua);
+
+        if (!isLineApp) {
+          // ถ้าไม่ใช่ LINE app ให้ redirect ไปเปิด deep link LINE app
+          // พร้อม fallback กลับมาที่ LIFF web page ถ้าไม่มีแอป
+          const liffId = "1656517684-8eZYRdaV";
+          const deepLink = "line://app/" + liffId + "?ref=" + encodeURIComponent(ref);
+
+          // ลอง redirect เปิดแอป line
+          window.location.href = deepLink;
+
+          // หลังจากนั้น ถ้าไม่เกิดอะไร (ไม่มี LINE app) ให้เปิด LIFF web fallback หลัง delay 2 วิ
+          setTimeout(() => {
+            window.location.href = `https://liff.line.me/${liffId}?ref=${encodeURIComponent(ref)}`;
+          }, 2000);
+
+          return;
+        }
+
+        // ถ้าอยู่ใน LINE app ให้เริ่ม LIFF ปกติ
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
 
         if (!liff.isLoggedIn()) {
@@ -61,17 +79,14 @@
 
         const profile = await liff.getProfile();
 
-        // เข้าสู่ระบบแบบ Anonymous กับ Firebase
         await auth.signInAnonymously();
 
-        // บันทึกข้อมูล referral ลง Firestore โดยไม่เก็บ userAgent
         await db.collection("referrals").add({
           lineId: profile.userId,
           ref: ref,
           timestamp: new Date().toISOString()
         });
 
-        // ส่งต่อไปยัง LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
 
       } catch (error) {
