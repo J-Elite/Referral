@@ -24,12 +24,23 @@
   <script>
     async function main() {
       try {
+        // อ่านค่า ref จาก URL
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
+        // เริ่มต้น LIFF
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
+
+        // ถ้ายังไม่ login ให้ login ก่อน
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return; // ให้รอ login แล้วหน้า reload เอง
+        }
+
+        // ดึงโปรไฟล์หลังจาก login สำเร็จ
         const profile = await liff.getProfile();
 
+        // ส่งข้อมูลไป Google Apps Script
         await fetch("https://script.google.com/macros/s/AKfycbyo9xgRltTuFkCyR7olZHdE4SoLI4zbQTbYL0gjQrdZQbqVvtpG_ka_MuEuSXCyPxTm/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,12 +52,15 @@
           })
         });
 
+        // Redirect ไปหน้า LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
+
       } catch (err) {
-        console.error(err);
+        console.error("Error:", err);
         document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
       }
     }
+
     main();
   </script>
 </body>
