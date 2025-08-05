@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>กำลังเข้าสู่ระบบ J POINT...</title>
   <style>
     body {
@@ -11,7 +11,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background-color: #ffffff;
+      background-color: #fff;
       color: #333;
       font-size: 18px;
     }
@@ -24,43 +24,39 @@
   <script>
     async function main() {
       try {
-        // อ่านค่า ref จาก URL
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
-        // เริ่มต้น LIFF
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
 
-        // ถ้ายังไม่ login ให้ login ก่อน
         if (!liff.isLoggedIn()) {
           liff.login();
-          return; // ให้รอ login แล้วหน้า reload เอง
+          return;
         }
 
-        // ดึงโปรไฟล์หลังจาก login สำเร็จ
         const profile = await liff.getProfile();
 
-        // ส่งข้อมูลไป Google Apps Script
-        await fetch("https://script.google.com/macros/s/AKfycbykUgGeCe8WQvbmFBkhrT_yN798QYdZ-U-hlB0hvizxcmS9ym0URqxokfyB_M6UZ1_J/exec", {
+        // ส่งข้อมูลแบบ application/x-www-form-urlencoded
+        const params = new URLSearchParams();
+        params.append("lineId", profile.userId);
+        params.append("ref", ref);
+        params.append("timestamp", new Date().toISOString());
+        params.append("userAgent", navigator.userAgent);
+
+        await fetch("https://script.google.com/macros/s/AKfycbzepyIjfKZybjb5Y_i59geCIQjTqn7H0Sow0AeIL-rNZHGWsaqBB1HObFsBZ4XxiSDZ/exec", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            lineId: profile.userId,
-            ref: ref,
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent
-          })
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params.toString(),
         });
 
-        // Redirect ไปหน้า LIFF หลัก
+        // redirect ไป LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
 
-      } catch (err) {
-        console.error("Error:", err);
+      } catch (error) {
+        console.error(error);
         document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
       }
     }
-
     main();
   </script>
 </body>
