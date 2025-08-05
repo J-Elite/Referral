@@ -29,22 +29,27 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <script>
-    // 1. ตั้งค่า Firebase Config (เอาค่าจาก Firebase Console)
+    // ตั้งค่า Firebase Config
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
+      apiKey: "AIzaSyAUeY2KA2cinNXLDIYsaMAcC9B7UOkAKu4",
+      authDomain: "friend-referral-fd5d1.firebaseapp.com",
+      projectId: "friend-referral-fd5d1",
+      storageBucket: "friend-referral-fd5d1.firebasestorage.app",
+      messagingSenderId: "1001644265381",
+      appId: "1:1001644265381:web:0f57e273a77e92ceb5224c"
     };
+
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     async function main() {
       try {
-        // 2. ดึงพารามิเตอร์ referral
+        // ดึงพารามิเตอร์ referral
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
-        // 3. เริ่มต้น LIFF
+        // เริ่มต้น LIFF
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
         if (!liff.isLoggedIn()) {
           liff.login();
@@ -53,10 +58,10 @@
 
         const profile = await liff.getProfile();
 
-        // 4. Anonymous sign-in ให้ผ่าน Firestore Rules
+        // Sign in แบบ Anonymous ให้ผ่าน Firestore Rules
         await firebase.auth().signInAnonymously();
 
-        // 5. บันทึกข้อมูลไป Firestore
+        // บันทึกข้อมูลไป Firestore
         await db.collection("referrals").add({
           lineId: profile.userId,
           ref: ref,
@@ -64,7 +69,7 @@
           userAgent: navigator.userAgent
         });
 
-        // 6. ส่งผู้ใช้ไป LIFF หลัก
+        // Redirect ไป LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
 
       } catch (error) {
