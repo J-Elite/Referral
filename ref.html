@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>กำลังเข้าสู่ระบบ J POINT...</title>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #ffffff;
+      color: #333;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <p>กำลังนำคุณเข้าสู่ระบบ J POINT...</p>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    async function main() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get("ref") || "unknown";
+
+        await liff.init({ liffId: "NEW_LIFF_ID" });
+        const profile = await liff.getProfile();
+
+        await fetch("https://script.google.com/macros/s/AKfycbyo9xgRltTuFkCyR7olZHdE4SoLI4zbQTbYL0gjQrdZQbqVvtpG_ka_MuEuSXCyPxTm/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lineId: profile.userId,
+            ref: ref,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+          })
+        });
+
+        window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
+      } catch (err) {
+        console.error(err);
+        document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
+      }
+    }
+    main();
+  </script>
+</body>
+</html>
