@@ -20,15 +20,32 @@
 <body>
   <p>กำลังนำคุณเข้าสู่ระบบ J POINT...</p>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+
+  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
   <script>
+    // 1. ตั้งค่า Firebase Config (เอาค่าจาก Firebase Console)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     async function main() {
       try {
+        // 2. ดึงพารามิเตอร์ referral
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
+        // 3. เริ่มต้น LIFF
         await liff.init({ liffId: "1656517684-8eZYRdaV" });
-
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
@@ -36,20 +53,18 @@
 
         const profile = await liff.getProfile();
 
-        // ส่งข้อมูลแบบ application/x-www-form-urlencoded
-        const params = new URLSearchParams();
-        params.append("lineId", profile.userId);
-        params.append("ref", ref);
-        params.append("timestamp", new Date().toISOString());
-        params.append("userAgent", navigator.userAgent);
+        // 4. Anonymous sign-in ให้ผ่าน Firestore Rules
+        await firebase.auth().signInAnonymously();
 
-        await fetch("https://script.google.com/macros/s/AKfycbyGqBvcrUPuZDkQRpp2daxhDE5TwWbjvPbFkV0wXZtjZFQDQpZwVCFbRmSXEWn1GEzJ/exec", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params.toString(),
+        // 5. บันทึกข้อมูลไป Firestore
+        await db.collection("referrals").add({
+          lineId: profile.userId,
+          ref: ref,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
         });
 
-        // redirect ไป LIFF หลัก
+        // 6. ส่งผู้ใช้ไป LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
 
       } catch (error) {
@@ -57,6 +72,7 @@
         document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
       }
     }
+
     main();
   </script>
 </body>
