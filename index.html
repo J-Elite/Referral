@@ -14,16 +14,17 @@
       background-color: #fff;
       color: #333;
       font-size: 18px;
+      margin: 0;
     }
   </style>
 </head>
 <body>
   <p>กำลังนำคุณเข้าสู่ระบบ J POINT...</p>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <!-- Firebase SDK แบบ compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -46,7 +47,7 @@
 
     async function main() {
       try {
-        // ดึงพารามิเตอร์ referral
+        // ดึงพารามิเตอร์ referral จาก URL
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("ref") || "unknown";
 
@@ -60,10 +61,10 @@
 
         const profile = await liff.getProfile();
 
-        // Sign in แบบ Anonymous ให้ผ่าน Firestore Rules
+        // เข้าสู่ระบบแบบ Anonymous กับ Firebase
         await auth.signInAnonymously();
 
-        // บันทึกข้อมูลไป Firestore
+        // บันทึกข้อมูล referral ลง Firestore
         await db.collection("referrals").add({
           lineId: profile.userId,
           ref: ref,
@@ -71,11 +72,11 @@
           userAgent: navigator.userAgent
         });
 
-        // Redirect ไป LIFF หลัก
+        // ส่งต่อไปยัง LIFF หลัก
         window.location.href = "https://liff.line.me/1656517684-1dnNGZYp";
 
       } catch (error) {
-        console.error(error);
+        console.error("Error:", error);
         document.body.innerHTML = "<p>เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>";
       }
     }
