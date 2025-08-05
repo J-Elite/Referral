@@ -43,7 +43,7 @@
         params.append("timestamp", new Date().toISOString());
         params.append("userAgent", navigator.userAgent);
 
-        await fetch("https://script.google.com/macros/s/AKfycbzepyIjfKZybjb5Y_i59geCIQjTqn7H0Sow0AeIL-rNZHGWsaqBB1HObFsBZ4XxiSDZ/exec", {
+        await fetch("https://script.google.com/macros/s/AKfycbyGqBvcrUPuZDkQRpp2daxhDE5TwWbjvPbFkV0wXZtjZFQDQpZwVCFbRmSXEWn1GEzJ/exec", {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: params.toString(),
